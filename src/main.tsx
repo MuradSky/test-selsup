@@ -1,23 +1,23 @@
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react'
+import React, { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { createPortal } from "react-dom";
-export interface Param {
+interface Param {
   id: number;
   name: string;
   type: string;
 }
 
-export interface ParamValue {
+interface ParamValue {
   paramId: number;
   value: string; 
 }
 
-export interface Model {
+interface Model {
   paramValues: ParamValue[];
   // colors: null;
 }
 
-export interface Props {
+interface Props {
   params: Param[];
   model: Model;
 }
@@ -28,7 +28,7 @@ interface ParamItem {
   value: string;
 }
 
-interface AddParamModal {
+interface AddParamModalProps {
   isOpen: boolean;
   closeModal: ()=> void;
   addNewParam: (name: string, type: string)=> void;
@@ -73,18 +73,18 @@ const ParamItem = ({ param, value, onChange }: ParamItem)=> {
 }
 
 const ParamEditor = ({ params, model }: Props)=> {
-  const [inputs, setInputs] = useState<ParamValue[]>(model.paramValues)
+  const [paramValues, setParamValues] = useState<ParamValue[]>(model.paramValues)
 
   useEffect(()=> {
-      setInputs(model.paramValues)
-  }, [model, setInputs])
+      setParamValues(model.paramValues)
+  }, [model, setParamValues])
 
   const onChange = useCallback((id: number)=> {
       return (e: ChangeEvent<HTMLInputElement>)=> {
           const { value } = e.target
-          setInputs(newInputsState(inputs, id, value))
+          setParamValues(newInputsState(paramValues, id, value))
       }
-  }, [inputs])
+  }, [paramValues])
 
   return (
       <form>
@@ -94,7 +94,7 @@ const ParamEditor = ({ params, model }: Props)=> {
                       key={param.id} 
                       param={param} 
                       onChange={onChange(param.id)} 
-                      value={inputs.find((input: ParamValue) => input.paramId === param.id)?.value || ''}
+                      value={paramValues.find((item: ParamValue) => item.paramId === param.id)?.value || ''}
                   />
               ))}
           </ul>
@@ -102,7 +102,7 @@ const ParamEditor = ({ params, model }: Props)=> {
   )
 }
 
-const AddParamModal = ({ isOpen, closeModal, addNewParam }: AddParamModal) => {
+const AddParamModal = ({ isOpen, closeModal, addNewParam }: AddParamModalProps) => {
   const [values, setValues] = useState({
       name: '',
       type: '',
@@ -113,14 +113,15 @@ const AddParamModal = ({ isOpen, closeModal, addNewParam }: AddParamModal) => {
       setValues({ ...values, [e.target.name]: e.target.value })
   }, [values])
 
-  const addParam = useCallback(()=> {
+  const handleSubmit = useCallback((e: FormEvent<HTMLFormElement>)=> {
+      e.preventDefault()
       if (values.type === '' || values.name === '') {
           return setValues({ ...values, error: 'Заполните все поля!' })
       } 
       addNewParam(values.name, values.type)
       setValues({ error: '', name: '', type: '' })
       closeModal()
-  }, [values])
+  }, [values, addNewParam, closeModal])
 
   const modalStyles = {
       top: 100, 
@@ -131,7 +132,7 @@ const AddParamModal = ({ isOpen, closeModal, addNewParam }: AddParamModal) => {
   }
   
   const options = [
-      { id: 1, value: '', label: 'Выберите поле', disabled: true, },
+      { id: 1, value: '', label: 'Выберите тип параметра', disabled: true, },
       { id: 2, value: 'text', label: 'Текст', disabled: false,  },
       { id: 3, value: 'email', label: 'Емейл', disabled: false,  },
       { id: 4, value: 'tel', label: 'Телефон', disabled: false,  },
@@ -144,30 +145,32 @@ const AddParamModal = ({ isOpen, closeModal, addNewParam }: AddParamModal) => {
 
   return createPortal(
       <dialog open={isOpen} style={modalStyles}>
-          <input 
-              type="text" 
-              name="name" 
-              placeholder="Название параметра" 
-              onChange={onChange} 
-              value={values.name} 
-          />
-          <select name="type" style={{ display: 'block', color: !values.type ? '#ccc' : '#000'   }} onChange={onChange} value={values.type}>
-              {options.map((opt)=> (
-                  <option 
-                      key={opt.id}
-                      value={opt.value} 
-                      disabled={opt.disabled}
-                      style={{color: !opt.disabled ? '#000' : '#ccc'}}
-                  >
-                      {opt.label}
-                  </option>
-              ))}
-          </select>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-              <button className="btn" onClick={closeModal}>Отмена</button>
-              <button className="btn" onClick={addParam}>Добавить</button>
-          </div>
-          {values.error && <div style={{ color: 'red', fontSize: 12, marginTop: 10 }}>{values.error}</div>}
+          <form onSubmit={handleSubmit}>
+            <input 
+                type="text" 
+                name="name" 
+                placeholder="Название параметра" 
+                onChange={onChange} 
+                value={values.name} 
+            />
+            <select name="type" style={{ display: 'block', color: !values.type ? '#ccc' : '#000'   }} onChange={onChange} value={values.type}>
+                {options.map((opt)=> (
+                    <option 
+                        key={opt.id}
+                        value={opt.value} 
+                        disabled={opt.disabled}
+                        style={{color: !opt.disabled ? '#000' : '#ccc'}}
+                    >
+                        {opt.label}
+                    </option>
+                ))}
+            </select>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
+                <button className="btn" onClick={closeModal}>Отмена</button>
+                <button className="btn" type="submit">Добавить</button>
+            </div>
+            {values.error && <div style={{ color: 'red', fontSize: 12, marginTop: 10 }}>{values.error}</div>}
+          </form>
       </dialog>, 
       document.body    
   )
@@ -184,9 +187,9 @@ const App = ()=> {
 
   const addNewParam = (name: string, type: string)=> {
       const id = new Date().getTime()
-      if (data) {
-        setData(createData(data, id, name, type))
-      }
+      const prevData = data ? data : { params: [], model: { paramValues: [] }}
+      const newData = createData(prevData, id, name, type)
+      setData(newData)
   }
 
   if (!data) return <div>Loading...</div>
