@@ -1,0 +1,45 @@
+{
+    "params": [
+        {
+            "id": 1,
+            "name": "Назначение",
+            "type": "text"
+        },
+        {
+            "id": 2,
+            "name": "Длина",
+            "type": "text"
+        },
+        {
+            "id": 3,
+            "name": "Time",
+            "type": "time"
+        },
+        {
+            "id": 4,
+            "name": "Date",
+            "type": "date"
+        }
+    ],
+
+    "model": {
+        "paramValues": [
+            {
+                "paramId": 1,
+                "value": "повседневное"
+            },
+            {
+                "paramId": 2,
+                "value": "макси"
+            },
+            {
+                "paramId": 3,
+                "value": "22:22"
+            },
+            {
+                "paramId": 4,
+                "value": "2023-12-20"
+            }
+        ]
+    }
+}
