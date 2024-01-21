@@ -1,3 +1,6 @@
+# Деплой проекта, для просмотра: 
+  [test-selsup](https://muradsky.github.io/test-selsup/)
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
